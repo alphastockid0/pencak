@@ -1,7 +1,45 @@
 {
     "kick": {
-        "merah": [],
-        "biru": []
+        "merah": [
+            {
+                "user": [
+                    "juri 1"
+                ],
+                "value": 2,
+                "time": 1684693916,
+                "ket": "kick",
+                "partai": "2",
+                "gelanggang": "A",
+                "babak": "1",
+                "sudut": "merah"
+            },
+            {
+                "user": [
+                    "juri 1"
+                ],
+                "value": 2,
+                "time": 1684693923,
+                "ket": "kick",
+                "partai": "2",
+                "gelanggang": "A",
+                "babak": "1",
+                "sudut": "merah"
+            }
+        ],
+        "biru": [
+            {
+                "user": [
+                    "juri 1"
+                ],
+                "value": 2,
+                "time": 1684693917,
+                "ket": "kick",
+                "partai": "2",
+                "gelanggang": "A",
+                "babak": "1",
+                "sudut": "biru"
+            }
+        ]
     },
     "punch": {
         "merah": []
