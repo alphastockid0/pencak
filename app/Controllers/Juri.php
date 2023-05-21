@@ -112,7 +112,7 @@ class Juri extends BaseController
                                 $data[$ket][$sudut][$k]['user'] = json_encode($v['user']);
 
                                 $models->create($data[$ket][$sudut][$k]);
-                                
+
                                 unset($data[$ket][$sudut][$k]);
                             }
                         }
@@ -187,7 +187,7 @@ class Juri extends BaseController
                 $config = json_decode(file_get_contents($file_config), true);
                 $data = json_decode(file_get_contents($file), true);
                 $new = [
-                    'user' => [$_POST['user']],
+                    'user' => json_encode([$_POST['user']]),
                     'value' => $value,
                     'time' => time(),
 
@@ -197,33 +197,47 @@ class Juri extends BaseController
                     'babak' => $_POST['babak'],
                     'sudut' => $_POST['sudut'],
                 ];
-                if (empty($data[$ket][$_POST['sudut']])) {
-                    $data[$ket][$_POST['sudut']][] = $new;
+                $nilaiModel = new InputNilai();
+                $dt = $nilaiModel->validation();
+
+                if (empty($dt)) {
+                    $nilaiModel->create($new);
                 } else {
-                    foreach ($data[$ket][$_POST['sudut']] as $key => $value) {
-                        if (in_array($_POST['user'], $value['user'])) {
-                            $found = true;
-                            continue;
-                        } elseif ((time() - $value['time']) > $config['interval']) {
-                            $data[$ket][$_POST['sudut']][] = $new;
-                            break;
-                        } else {
-                            $found = false;
-                            //tambahkan $_POST['user'] ke array $value['user'] data yang diharapkan 'user' => [juri1,juri2,juri3],
+                    // echo json_encode($dt,true);
+                    if (isset($dt[$ket][$_POST['sudut']])) {
+                        foreach ($dt[$ket][$_POST['sudut']] as $key => $value) {
+                            if (in_array($_POST['user'], json_decode($value['user'], true))) {
+                                $found = true;
+                                continue;
+                            } elseif ((time() - $value['time']) > $config['interval']) {
+                                $nilaiModel->create($new);
+                                break;
+                            } else {
+                                $found = false;
 
-                            $data[$ket][$_POST['sudut']][$key]['user'][] = $_POST['user'];
-                            break;
+                                $updatedUser = json_decode($value['user'], true);
+                                $updatedUser[] = $_POST['user'];
+
+                                $newValue = [
+                                    'user' => json_encode($updatedUser)
+                                ];
+
+                                $nilaiModel->updateData($value['id'], $newValue);
+                                break;
+                            }
                         }
-                    }
 
-                    if ($found) {
-                        $data[$ket][$_POST['sudut']][] = $new;
+                        if ($found) {
+                            $nilaiModel->create($new);
+                        }
+                    } else {
+                        $nilaiModel->create($new);
                     }
                 }
                 // if ($config['start'] == true) {
-                    $jsonData = json_encode($data, JSON_PRETTY_PRINT);
-                    file_put_contents($file, $jsonData);
-                    echo $jsonData;
+                // $jsonData = json_encode($data, JSON_PRETTY_PRINT);
+                // file_put_contents($file, $jsonData);
+                // echo $jsonData;
                 // }
                 break;
             case 'punch':

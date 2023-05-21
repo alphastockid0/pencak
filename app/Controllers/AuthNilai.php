@@ -17,6 +17,7 @@ class AuthNilai extends BaseController
     {
         $nilaiModel = new InputNilai();
         $data = $nilaiModel->validation();
-        return view('cek', ['data' => $data]);
+        var_dump($data);
+        // return view('cek', ['data' => $data]);
     }
 }

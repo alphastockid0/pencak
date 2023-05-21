@@ -65,6 +65,7 @@ class InputNilai extends Model
             }
 
             $result[$ket][$sudut][] = [
+                'id' => $item['id'],
                 'user' => $item['user'],
                 'value' => $item['value'],
                 'time' => $item['time'],

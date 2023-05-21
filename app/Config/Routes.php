@@ -66,8 +66,7 @@ $routes->group('chat', function ($routes) {
 });
 
 
-$routes->get('/cek', 'AuthNilai::auth
-');
+$routes->get('/cek', 'AuthNilai::auth');
 
 
 
