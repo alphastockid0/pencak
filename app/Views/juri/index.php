@@ -13,7 +13,6 @@
     <!-- sweetalert2 -->
     <link rel="stylesheet" href="<?= base_url('node_modules/sweetalert2/dist/sweetalert2.min.css'); ?>">
     <!-- CSS File -->
-    <link rel="stylesheet" href="<?= base_url('node_modules/boxicons/css/boxicons.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('HTML/bootstrap-icons/bootstrap-icons.css') ?>">
     <link rel="stylesheet" href="<?= base_url('HTML/assets/css/pencak.css') ?>">
     <style>
