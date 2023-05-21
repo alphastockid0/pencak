@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\InputNilai;
+use App\Models\JadwalTanding;
 
 class Juri extends BaseController
 {
@@ -15,7 +16,7 @@ class Juri extends BaseController
     {
         if (!session()->user_logged) {
             session_destroy();
-            return redirect()->to(base_url('login'));
+            return redirect()->to(base_url());
         }
         $method = $_SERVER['REQUEST_METHOD'];
         switch ($method) {
@@ -70,15 +71,11 @@ class Juri extends BaseController
     }
     public function start()
     {
-        $file_data = APPPATH . 'Views/data.json';
         $file_config = APPPATH . 'Views/config.json';
-        $models = new InputNilai();
         $config = json_decode(file_get_contents($file_config), true);
         $config['start'] = filter_var($_GET['start'], FILTER_VALIDATE_BOOLEAN);
         $jsonConfig = json_encode($config, JSON_PRETTY_PRINT);
         file_put_contents($file_config, $jsonConfig);
-
-        $data = json_decode(file_get_contents($file_data), true);
 
         // Aktifkan output buffering agar data bisa terus diproses tanpa henti
         ob_implicit_flush(true);
@@ -91,35 +88,32 @@ class Juri extends BaseController
         if ($_SERVER['REMOTE_ADDR'] !== $_SERVER['SERVER_ADDR']) {
             die('Forbidden');
         }
-
+        $g = $_GET['gelanggang'];
+        $nilaiModel = new InputNilai();
+        $jadwalModel = new JadwalTanding();
         // Proses data secara terus menerus
         while (true) {
+            $jm = $jadwalModel->aktifPartai($g);
+            $b = $jm['active_babak'];
+            $dt = $nilaiModel->validation($g,$b);
             $config = json_decode(file_get_contents($file_config), true);
             if ($config['start'] === true) {
-                foreach ($data as $ket => $value) {
+                foreach ($dt as $ket => $value) {
                     foreach ($value as $sudut => $val) {
                         foreach ($val as $k => $v) {
                             if ((time() - $v['time']) >= $config['interval']) {
                                 $c = count($v['user']);
-                                $query = $this->db->table('new_nilai_tanding')
-                                    ->selectMax('valid_id')
-                                    ->where('partai', $v['partai'])
-                                    ->where('gelanggang', $v['gelanggang'])
-                                    ->get();
-                                $max_id = $query->getRow()->valid_id;
-                                $data[$ket][$sudut][$k]['status'] = $c >= $config['juri_min'] ? 'valid' : 'invalid';
-                                $data[$ket][$sudut][$k]['valid_id'] = $c >= $config['juri_min'] ? $max_id + 1 : 0;
-                                $data[$ket][$sudut][$k]['user'] = json_encode($v['user']);
+                                $max_id = $nilaiModel->max_validId();
+                                $d['status'] = $c >= $config['juri_min'] ? 'valid' : 'invalid';
+                                $d['valid_id'] = $c >= $config['juri_min'] ? $max_id + 1 : 0;
 
-                                $models->create($data[$ket][$sudut][$k]);
+                                $nilaiModel->updateData($v['id'],$d);
 
-                                unset($data[$ket][$sudut][$k]);
+                                unset($v);
                             }
                         }
                     }
                 }
-                $jsonData = json_encode($data, JSON_PRETTY_PRINT);
-                file_put_contents($file_data, $jsonData);
             }
             sleep(1);
         }
@@ -185,7 +179,6 @@ class Juri extends BaseController
                 $found = false;
                 $file_config = APPPATH . 'Views/config.json';
                 $config = json_decode(file_get_contents($file_config), true);
-                $data = json_decode(file_get_contents($file), true);
                 $new = [
                     'user' => json_encode([$_POST['user']]),
                     'value' => $value,
@@ -198,54 +191,52 @@ class Juri extends BaseController
                     'sudut' => $_POST['sudut'],
                 ];
                 $nilaiModel = new InputNilai();
-                $dt = $nilaiModel->validation();
+                $dt = $nilaiModel->validation($_POST['gelanggang'], $_POST['babak']);
+                if ($config['start'] === true) {
+                    if (empty($dt)) {
+                        $nilaiModel->create($new);
+                    } else {
+                        // echo json_encode($dt,true);
+                        if (isset($dt[$ket][$_POST['sudut']])) {
+                            foreach ($dt[$ket][$_POST['sudut']] as $key => $value) {
+                                if (in_array($_POST['user'], json_decode($value['user'], true))) {
+                                    $found = true;
+                                    continue;
+                                } elseif ((time() - $value['time']) > $config['interval']) {
+                                    $nilaiModel->create($new);
+                                    break;
+                                } else {
+                                    $found = false;
 
-                if (empty($dt)) {
-                    $nilaiModel->create($new);
-                } else {
-                    // echo json_encode($dt,true);
-                    if (isset($dt[$ket][$_POST['sudut']])) {
-                        foreach ($dt[$ket][$_POST['sudut']] as $key => $value) {
-                            if (in_array($_POST['user'], json_decode($value['user'], true))) {
-                                $found = true;
-                                continue;
-                            } elseif ((time() - $value['time']) > $config['interval']) {
-                                $nilaiModel->create($new);
-                                break;
-                            } else {
-                                $found = false;
+                                    $updatedUser = json_decode($value['user'], true);
+                                    $updatedUser[] = $_POST['user'];
 
-                                $updatedUser = json_decode($value['user'], true);
-                                $updatedUser[] = $_POST['user'];
+                                    $newValue = [
+                                        'user' => json_encode($updatedUser)
+                                    ];
 
-                                $newValue = [
-                                    'user' => json_encode($updatedUser)
-                                ];
-
-                                $nilaiModel->updateData($value['id'], $newValue);
-                                break;
+                                    $nilaiModel->updateData($value['id'], $newValue);
+                                    break;
+                                }
                             }
-                        }
 
-                        if ($found) {
+                            if ($found) {
+                                $nilaiModel->create($new);
+                            }
+                        } else {
                             $nilaiModel->create($new);
                         }
-                    } else {
-                        $nilaiModel->create($new);
                     }
                 }
-                // if ($config['start'] == true) {
-                // $jsonData = json_encode($data, JSON_PRETTY_PRINT);
-                // file_put_contents($file, $jsonData);
-                // echo $jsonData;
-                // }
+
                 break;
             case 'punch':
                 $value = 1;
                 $found = false;
-                $data = json_decode(file_get_contents($file), true);
+                $file_config = APPPATH . 'Views/config.json';
+                $config = json_decode(file_get_contents($file_config), true);
                 $new = [
-                    'user' => [$_POST['user']],
+                    'user' => json_encode([$_POST['user']]),
                     'value' => $value,
                     'time' => time(),
 
@@ -255,32 +246,45 @@ class Juri extends BaseController
                     'babak' => $_POST['babak'],
                     'sudut' => $_POST['sudut'],
                 ];
-                if (empty($data[$ket][$_POST['sudut']])) {
-                    $data[$ket][$_POST['sudut']][] = $new;
-                } else {
-                    foreach ($data[$ket][$_POST['sudut']] as $key => $value) {
-                        if (in_array($_POST['user'], $value['user'])) {
-                            $found = true;
-                            continue;
+                $nilaiModel = new InputNilai();
+                $dt = $nilaiModel->validation($_POST['gelanggang'], $_POST['babak']);
+                if ($config['start'] === true) {
+                    if (empty($dt)) {
+                        $nilaiModel->create($new);
+                    } else {
+                        // echo json_encode($dt,true);
+                        if (isset($dt[$ket][$_POST['sudut']])) {
+                            foreach ($dt[$ket][$_POST['sudut']] as $key => $value) {
+                                if (in_array($_POST['user'], json_decode($value['user'], true))) {
+                                    $found = true;
+                                    continue;
+                                } elseif ((time() - $value['time']) > $config['interval']) {
+                                    $nilaiModel->create($new);
+                                    break;
+                                } else {
+                                    $found = false;
+
+                                    $updatedUser = json_decode($value['user'], true);
+                                    $updatedUser[] = $_POST['user'];
+
+                                    $newValue = [
+                                        'user' => json_encode($updatedUser)
+                                    ];
+
+                                    $nilaiModel->updateData($value['id'], $newValue);
+                                    break;
+                                }
+                            }
+
+                            if ($found) {
+                                $nilaiModel->create($new);
+                            }
                         } else {
-                            $found = false;
-                            //tambahkan $_POST['user'] ke array $value['user'] data yang diharapkan 'user' => [juri1,juri2,juri3],
-                            $data[$ket][$key]['user'][] = $_POST['user'];
-                            break;
+                            $nilaiModel->create($new);
                         }
                     }
+                }
 
-                    if ($found) {
-                        $data[$ket][$_POST['sudut']][] = $new;
-                    }
-                }
-                $file_config = APPPATH . 'Views/config.json';
-                $config = json_decode(file_get_contents($file_config), true);
-                if ($config['start'] == true) {
-                    $jsonData = json_encode($data, JSON_PRETTY_PRINT);
-                    file_put_contents($file, $jsonData);
-                    echo $jsonData;
-                }
                 break;
             case 'dropingPlus':
                 $value = 3;

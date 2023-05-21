@@ -120,7 +120,8 @@
             $.ajax({
                 url: "<?= base_url('juri/start') ?>",
                 data: {
-                    'start': cond
+                    'start': cond,
+                    'gelanggang': '<?= session('gelanggang') ?>'
                 },
                 method: "GET",
                 success: function (data) {

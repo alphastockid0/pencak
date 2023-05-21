@@ -32,7 +32,7 @@ class InputNilai extends Model
     }
 
     public function create($data)
-    {   
+    {
         return $this->insert($data);
     }
 
@@ -46,9 +46,9 @@ class InputNilai extends Model
         return $this->delete($id);
     }
 
-    public function validation()
+    public function validation($g, $b)
     {
-        $data = $this->where('status IS NULL')->where('valid_id', 0)->findAll();
+        $data = $this->where('status IS NULL')->where('valid_id', 0)->where('gelanggang', $g)->where('babak', $b)->findAll();
 
         $result = [];
 
@@ -78,5 +78,16 @@ class InputNilai extends Model
         }
 
         return $result;
+    }
+    public function max_validId()
+    {
+        $query = $this->selectMax('valid_id')->get();
+        $row = $query->getRow();
+
+        if ($row) {
+            return $row->valid_id;
+        }
+
+        return 0; // Nilai default jika tidak ada data atau kolom kosong
     }
 }
