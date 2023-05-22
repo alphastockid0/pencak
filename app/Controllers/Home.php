@@ -51,7 +51,7 @@ class Home extends BaseController
                     return redirect()->to(base_url('juri'));
                 } elseif (Session('type') == 'author') {
                     $this->_updateLastLogin(session()->uid);
-                    return view('admin/dashboard',$data);
+                    return redirect()->to(base_url('dashboard'));
                 }
             } else {
                 // Jika user tidak ditemukan, tampilkan pesan error
@@ -90,6 +90,16 @@ class Home extends BaseController
     }
     public function dashboard()
     {
-        return view('admin/dashboard.php');
+        $data = array(
+            'username' => session()->username,
+            'uid' => session()->uid,
+            'namaLengkap' => session()->namaLengkap,
+            'email' => session()->email,
+            'auth_key' => session()->auth_key,
+            'title_name' => session()->title_name,
+            'type' => session()->type,
+            'user_logged' => TRUE,
+        );
+        return view('admin/dashboard.php',$data);
     }
 }

@@ -69,15 +69,8 @@ class Juri extends BaseController
                 break;
         }
     }
-    public function start()
-    {
-        $file_config = APPPATH . 'Views/config.json';
-        $config = json_decode(file_get_contents($file_config), true);
-        $config['start'] = filter_var($_GET['start'], FILTER_VALIDATE_BOOLEAN);
-        $jsonConfig = json_encode($config, JSON_PRETTY_PRINT);
-        file_put_contents($file_config, $jsonConfig);
-
-        // Aktifkan output buffering agar data bisa terus diproses tanpa henti
+    private function daemon($g, $file_config)
+    { // Aktifkan output buffering agar data bisa terus diproses tanpa henti
         ob_implicit_flush(true);
         ob_end_flush();
 
@@ -88,35 +81,52 @@ class Juri extends BaseController
         if ($_SERVER['REMOTE_ADDR'] !== $_SERVER['SERVER_ADDR']) {
             die('Forbidden');
         }
-        $g = $_GET['gelanggang'];
         $nilaiModel = new InputNilai();
         $jadwalModel = new JadwalTanding();
-        // Proses data secara terus menerus
         while (true) {
-            $jm = $jadwalModel->aktifPartai($g);
-            $b = $jm['active_babak'];
-            $dt = $nilaiModel->validation($g,$b);
-            $config = json_decode(file_get_contents($file_config), true);
-            if ($config['start'] === true) {
-                foreach ($dt as $ket => $value) {
-                    foreach ($value as $sudut => $val) {
-                        foreach ($val as $k => $v) {
-                            if ((time() - $v['time']) >= $config['interval']) {
-                                $c = count($v['user']);
-                                $max_id = $nilaiModel->max_validId();
-                                $d['status'] = $c >= $config['juri_min'] ? 'valid' : 'invalid';
-                                $d['valid_id'] = $c >= $config['juri_min'] ? $max_id + 1 : 0;
+            try {
+                $jm = $jadwalModel->aktifPartai($g);
+                $b = $jm['active_babak'];
+                $dt = $nilaiModel->validation($g, $b);
+                $config = json_decode(file_get_contents($file_config), true);
+                if ($config['start'] === true) {
+                    foreach ($dt as $ket => $value) {
+                        foreach ($value as $sudut => $val) {
+                            foreach ($val as $k => $v) {
+                                if ((time() - $v['time']) >= $config['interval']) {
+                                    $c = count(json_decode($v['user'], true));
+                                    $max_id = $nilaiModel->max_validId();
+                                    $d['status'] = $c >= $config['juri_min'] ? 'valid' : 'invalid';
+                                    $d['valid_id'] = $c >= $config['juri_min'] ? $max_id + 1 : 0;
 
-                                $nilaiModel->updateData($v['id'],$d);
-
-                                unset($v);
+                                    $nilaiModel->updateData($v['id'], $d);
+                                    if ($c >= $config['juri_min']) {
+                                        $jadwalModel->updateNilai($g, $v['sudut'], $v['value']);
+                                    }
+                                }
                             }
                         }
                     }
+                } else {
+                    break;
                 }
+                sleep(1);
+                //code...
+            } catch (\Exception $e) {
+                $this->daemon($g, $file_config);
             }
-            sleep(1);
         }
+    }
+    public function start()
+    {
+        $file_config = APPPATH . 'Views/config.json';
+        $config = json_decode(file_get_contents($file_config), true);
+        $g = $_GET['gelanggang'];
+        $config['start'] = filter_var($_GET['start'], FILTER_VALIDATE_BOOLEAN);
+        $jsonConfig = json_encode($config, JSON_PRETTY_PRINT);
+        file_put_contents($file_config, $jsonConfig);       
+
+        $this->daemon($g, $file_config);
     }
     public function reload()
     {

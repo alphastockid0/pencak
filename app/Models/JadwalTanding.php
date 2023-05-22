@@ -55,7 +55,7 @@ class JadwalTanding extends Model
     }
     public function aktifPartai($g)
     {
-       return $this->where('aktif',1)->where('gelanggang', $g)->findAll();
+       return $this->where('aktif',1)->where('gelanggang', $g)->first();
     }
 
     public function updateNilai($g,$s,$val)

@@ -121,7 +121,7 @@
                 url: "<?= base_url('juri/start') ?>",
                 data: {
                     'start': cond,
-                    'gelanggang': '<?= session('gelanggang') ?>'
+                    'gelanggang': 'A'
                 },
                 method: "GET",
                 success: function (data) {
