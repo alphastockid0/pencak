@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\InputNilai;
 use App\Models\JadwalTanding;
+use App\ThirdParty\SocketServer;
 
 class Juri extends BaseController
 {
@@ -103,6 +104,10 @@ class Juri extends BaseController
                                     if ($c >= $config['juri_min']) {
                                         $jadwalModel->updateNilai($g, $v['sudut'], $v['value']);
                                     }
+                                    $message ='halo';
+                                    $socket = new SocketServer();
+                                    $socket->broadcastToAll($message);
+
                                 }
                             }
                         }
@@ -124,7 +129,7 @@ class Juri extends BaseController
         $g = $_GET['gelanggang'];
         $config['start'] = filter_var($_GET['start'], FILTER_VALIDATE_BOOLEAN);
         $jsonConfig = json_encode($config, JSON_PRETTY_PRINT);
-        file_put_contents($file_config, $jsonConfig);       
+        file_put_contents($file_config, $jsonConfig);
 
         $this->daemon($g, $file_config);
     }

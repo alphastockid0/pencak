@@ -68,4 +68,3 @@ $app->setContext($context);
  */
 
 $app->run();
-require_once('server.php');

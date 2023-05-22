@@ -56,7 +56,7 @@
                         </a>
                     </div>
                 </div>
-                <a href="<?= base_url('logout')?>" class="nav_link">
+                <a href="<?= base_url('logout') ?>" class="nav_link">
                     <i class='bx bx-log-out nav_icon'></i>
                     <span class="nav_name">SignOut</span>
                 </a>
@@ -124,10 +124,36 @@
                     'gelanggang': 'A'
                 },
                 method: "GET",
-                success: function (data) {
+                success: function(data) {
                     console.log(data);
                 }
             })
+        }
+
+        // Membuat koneksi WebSocket
+        var socket = new WebSocket('ws://192.168.43.100:8080');
+
+        // Mengatur event listener ketika koneksi terbuka
+        socket.onopen = function(event) {
+            console.log('Koneksi terbuka');
+        };
+
+        // Mengatur event listener untuk menerima pesan dari server
+        socket.onmessage = function(event) {
+            console.log(event);
+            var message = event.data;
+            console.log('Menerima pesan dari server:', message);
+            // Lakukan tindakan yang sesuai dengan pesan yang diterima
+        };
+
+        // Mengatur event listener ketika koneksi ditutup
+        socket.onclose = function(event) {
+            console.log('Koneksi ditutup');
+        };
+
+        // Mengirim pesan ke server
+        function sendMessage(message) {
+            socket.send(message);
         }
     </script>
 

@@ -1,5 +1,5 @@
 {
-    "start": false,
+    "start": true,
     "juri_logged": [],
     "juri_max": 3,
     "juri_min": 2,

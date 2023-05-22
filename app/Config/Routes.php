@@ -68,6 +68,10 @@ $routes->group('chat', function ($routes) {
 
 $routes->get('/cek', 'AuthNilai::auth');
 
+$routes->get('/', 'SocketController::index');
+$routes->cli('socket', 'SocketController::start');
+
+
 
 
 /*
