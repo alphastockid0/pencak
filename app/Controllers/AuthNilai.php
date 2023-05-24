@@ -14,10 +14,10 @@ class AuthNilai extends BaseController
 
     public function auth()
     {
-        $g = session('gelanggang');
-        $nilaiModel = new InputNilai();
+    //     $g = session('gelanggang');
+    //     $nilaiModel = new InputNilai();
         // $data = $nilaiModel->validation($g, $b);
         // var_dump($data);
-        // return view('cek', ['data' => $data]);
+        return view('cek');
     }
 }

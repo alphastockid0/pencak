@@ -48,7 +48,9 @@ class Autoload extends AutoloadConfig
         APP_NAMESPACE => APPPATH,                // For custom namespace
         'Config'      => APPPATH . 'Config',
         'Libraries'   => APPPATH . 'Libraries',  // To ensure libraries still found,
-        'Helpers'     => APPPATH . 'Helpers'     // For custom helpers
+        'Helpers'     => APPPATH . 'Helpers',     // For custom helpers
+        'App\\Controllers' => APPPATH.'Controllers',
+
     ];
 
     /**

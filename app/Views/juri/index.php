@@ -15,6 +15,8 @@
     <!-- CSS File -->
     <link rel="stylesheet" href="<?= base_url('HTML/bootstrap-icons/bootstrap-icons.css') ?>">
     <link rel="stylesheet" href="<?= base_url('HTML/assets/css/pencak.css') ?>">
+    <!-- socket -->
+    <script src="<?= base_url('node_modules/socket.io-client/dist/socket.io.js') ?>"></script>
     <style>
         * {
             margin: 0;

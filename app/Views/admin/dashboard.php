@@ -11,6 +11,8 @@
     <!-- CSS File -->
     <link rel="stylesheet" href="<?= base_url('node_modules/boxicons/css/boxicons.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('HTML/assets/css/style.css') ?>">
+    <!-- socket -->
+    <script src="<?= base_url('node_modules/socket.io-client/dist/socket.io.js') ?>"></script>
 
 </head>
 
@@ -130,31 +132,23 @@
             })
         }
 
-        // Membuat koneksi WebSocket
-        var socket = new WebSocket('ws://192.168.43.100:8080');
+        const socket = io('http://192.168.43.100:8080'); // Ganti URL dengan URL server Workerman sesuai kebutuhan
 
-        // Mengatur event listener ketika koneksi terbuka
-        socket.onopen = function(event) {
-            console.log('Koneksi terbuka');
-        };
-
-        // Mengatur event listener untuk menerima pesan dari server
-        socket.onmessage = function(event) {
-            console.log(event);
-            var message = event.data;
-            console.log('Menerima pesan dari server:', message);
-            // Lakukan tindakan yang sesuai dengan pesan yang diterima
-        };
-
-        // Mengatur event listener ketika koneksi ditutup
-        socket.onclose = function(event) {
-            console.log('Koneksi ditutup');
-        };
-
-        // Mengirim pesan ke server
-        function sendMessage(message) {
-            socket.send(message);
+        // Mengirim pesan ke server Workerman
+        function sendMessage(userId, userPosition, message) {
+            const data = {
+                userId: userId,
+                userPosition: userPosition,
+                message: message
+            };
+            socket.emit('message', JSON.stringify(data));
         }
+
+        // Menerima pesan dari server Workerman
+        socket.on('message', function(message) {
+            console.log('Received message:', message);
+            // Lakukan tindakan sesuai dengan pesan yang diterima
+        });
     </script>
 
 </body>

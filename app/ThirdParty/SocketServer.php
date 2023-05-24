@@ -11,45 +11,37 @@ class SocketServer implements MessageComponentInterface
 
     public function __construct()
     {
-        $this->clients = new \SplObjectStorage();
+        $this->clients = new \SplObjectStorage;
     }
 
-    public function onOpen(ConnectionInterface $connection)
+    public function onOpen(ConnectionInterface $conn)
     {
-        $this->clients->attach($connection);
-        echo "User connected: " . $connection->resourceId . "\n";
+        // Ketika koneksi baru dibuka, tambahkan ke koleksi klien
+        $this->clients->attach($conn);
+        echo "Koneksi baru: {$conn->resourceId}\n";
     }
 
-    public function onMessage(ConnectionInterface $from, $message)
+    public function onMessage(ConnectionInterface $from, $msg)
     {
-        // Logika penanganan pesan yang diterima
-    }
-
-    public function onClose(ConnectionInterface $connection)
-    {
-        $this->clients->detach($connection);
-        echo "User disconnected: " . $connection->resourceId . "\n";
-    }
-
-    public function onError(ConnectionInterface $connection, \Exception $e)
-    {
-        echo "An error occurred: " . $e->getMessage() . "\n";
-        $connection->close();
-    }
-
-    public function broadcastToAll($message)
-    {
+        // Kirim pesan dari klien ke semua klien yang terhubung
         foreach ($this->clients as $client) {
-            $client->send($message);
-        }
-    }
-    public function broadcastToUsers($users, $message)
-    {
-        foreach ($this->clients as $client) {
-            $userId = $client->resourceId;
-            if (in_array($userId, $users)) {
-                $client->send($message);
+            if ($from !== $client) {
+                $client->send($msg);
             }
         }
+    }
+
+    public function onClose(ConnectionInterface $conn)
+    {
+        // Hapus koneksi yang tertutup dari koleksi klien
+        $this->clients->detach($conn);
+        echo "Koneksi tertutup: {$conn->resourceId}\n";
+    }
+
+    public function onError(ConnectionInterface $conn, \Exception $e)
+    {
+        // Tangani kesalahan pada koneksi
+        echo "Error: {$e->getMessage()}\n";
+        $conn->close();
     }
 }
