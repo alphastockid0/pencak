@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="<?= base_url('node_modules/boxicons/css/boxicons.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('HTML/assets/css/style.css') ?>">
     <!-- socket -->
-    <script src="<?= base_url('node_modules/socket.io-client/dist/socket.io.js') ?>"></script>
 
 </head>
 
@@ -131,24 +130,13 @@
                 }
             })
         }
+        // Contoh menggunakan JavaScript murni
+        var socket = new WebSocket('ws://192.168.1.72:8080');
 
-        const socket = io('http://192.168.43.100:8080'); // Ganti URL dengan URL server Workerman sesuai kebutuhan
-
-        // Mengirim pesan ke server Workerman
-        function sendMessage(userId, userPosition, message) {
-            const data = {
-                userId: userId,
-                userPosition: userPosition,
-                message: message
-            };
-            socket.emit('message', JSON.stringify(data));
-        }
-
-        // Menerima pesan dari server Workerman
-        socket.on('message', function(message) {
-            console.log('Received message:', message);
-            // Lakukan tindakan sesuai dengan pesan yang diterima
-        });
+        // Mengirim informasi pengguna saat koneksi terbuka
+        socket.onopen = function(event) {
+            console.log('conected');
+        };
     </script>
 
 </body>
