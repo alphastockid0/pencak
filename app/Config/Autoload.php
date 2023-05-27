@@ -50,6 +50,8 @@ class Autoload extends AutoloadConfig
         'Libraries'   => APPPATH . 'Libraries',  // To ensure libraries still found,
         'Helpers'     => APPPATH . 'Helpers',     // For custom helpers
         'App\\Controllers' => APPPATH.'Controllers',
+        'App\Libraries' => APPPATH . 'Libraries',
+
 
     ];
 

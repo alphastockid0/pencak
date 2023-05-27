@@ -15,7 +15,6 @@ class Home extends BaseController
     }
     public function index()
     {
-
         return view('login/login.php');
     }
 
@@ -50,6 +49,12 @@ class Home extends BaseController
                     $this->_updateLastLogin(session()->uid);
                     return redirect()->to(base_url('juri'));
                 } elseif (Session('type') == 'author') {
+                    $this->_updateLastLogin(session()->uid);
+                    return redirect()->to(base_url('dashboard'));
+                } elseif (Session('type') == 'admin') {
+                    $this->_updateLastLogin(session()->uid);
+                    return redirect()->to(base_url('dashboard'));
+                }elseif (Session('type') == 'panitia') {
                     $this->_updateLastLogin(session()->uid);
                     return redirect()->to(base_url('dashboard'));
                 }
@@ -100,6 +105,6 @@ class Home extends BaseController
             'type' => session()->type,
             'user_logged' => TRUE,
         );
-        return view('admin/dashboard.php',$data);
+        return view('admin/dashboard.php', $data);
     }
 }

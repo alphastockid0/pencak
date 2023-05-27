@@ -2,46 +2,85 @@
 
 namespace App\Libraries;
 
-use Workerman\Worker;
+use Ratchet\MessageComponentInterface;
+use Ratchet\ConnectionInterface;
 
-class Server
+class Server implements MessageComponentInterface
 {
-    private $worker;
-    private $connections = [];
-
+    protected $clients;
+    protected $connectedUsers;
     public function __construct()
     {
-        $this->worker = new Worker();
-        $this->worker->onConnect = [$this, 'handleConnect'];
-        $this->worker->onMessage = [$this, 'handleMessage'];
+        $this->clients = new \SplObjectStorage;
+        $this->connectedUsers = [];
     }
 
-    public function run()
+    public function onOpen(ConnectionInterface $conn)
     {
-        Worker::runAll();
+        $uid = session('uid');
+        if (!$uid) {
+            $conn->close(); // Menutup koneksi jika uid tidak tersedia dalam session
+            return;
+        }
+
+        $type = session('type');
+        $gelanggang = session('gelanggang');
+        $juriNumber = session('juri_number');
+
+        $this->connectedUsers[$uid] = [
+            'type' => $type ?? '',
+            'gelanggang' => $gelanggang ?? '',
+            'juri_number' => $juriNumber ?? '',
+        ];
+
+        // ...
     }
 
-    public function handleConnect($connection)
+    public function onMessage(ConnectionInterface $from, $msg)
     {
-        $this->connections[$connection->id] = $connection;
-        echo "New connection: " . $connection->id . "\n";
-    }
+        // Mengidentifikasi pengguna pengirim
+        $senderUid = $this->getUidByConnection($from);
 
-    
-    public function handleMessage($connection, $message)
-    {
-        $data = json_decode($message, true);
+        // Menangani pesan yang diterima
+        // ...
 
-        // Lakukan identifikasi pengguna berdasarkan ID dan posisi gelanggang
-        $userId = $data['userId'];
-        $userPosition = $data['userPosition'];
-
-        // Lakukan logika pengiriman pesan ke pengguna tertentu
-        // Misalnya, jika posisi pengguna adalah Gelanggang A, kirim pesan ke pengguna di Gelanggang A
-        foreach ($this->connections as $connId => $conn) {
-            if ($connId !== $connection->id && $conn->userPosition === $userPosition) {
-                $conn->send($data['message']);
+        // Contoh pengiriman pesan balasan ke pengguna lain
+        foreach ($this->clients as $client) {
+            if ($from !== $client) {
+                $client->send($msg);
             }
         }
+    }
+
+    public function onClose(ConnectionInterface $conn)
+    {
+        $uid = $this->getUidByConnection($conn);
+
+        // Menghapus data pengguna yang terputus
+        unset($this->connectedUsers[$uid]);
+
+        // ...
+    }
+
+    private function getUidByConnection(ConnectionInterface $conn)
+    {
+        foreach ($this->connectedUsers as $uid => $userData) {
+            if ($userData['connection'] === $conn) {
+                return $uid;
+            }
+        }
+
+        return null;
+    }
+
+
+    public function onError(ConnectionInterface $conn, \Exception $e)
+    {
+        echo "An error has occurred: {$e->getMessage()}\n";
+        $conn->close();
+    }
+    public function getConnectedUsers()
+    {
+        return $this->connectedUsers;
     }
 }

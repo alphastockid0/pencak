@@ -104,9 +104,6 @@ class Juri extends BaseController
                                     if ($c >= $config['juri_min']) {
                                         $jadwalModel->updateNilai($g, $v['sudut'], $v['value']);
                                     }
-                                    $message ='halo';
-                                    $socket = new SocketServer();
-                                    $socket->broadcastToAll($message);
 
                                 }
                             }

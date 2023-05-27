@@ -161,7 +161,7 @@
                             <h6 class="username text-white mt-1" style="font-size: 14px;"><?= $juri['nama']; ?></h6>
                         </div>
                         <div class="card bg-dark col-md-7 mx-auto mt-1 text-center px-0 py-0 d-flex align-items-center justify-content-center" style="max-height: 25px;">
-                            <h6 class="gelanggang text-warning mt-1" style="font-size: 14px;">Gelanggang <span id="gelanggang"><?= $data->gelanggang ?? ''; ?></span></h6>
+                            <h6 class="gelanggang text-warning mt-1" style="font-size: 14px;">Gelanggang <span id="gelanggang"><?= $juri['gelanggang'] ?? ''; ?></span></h6>
                         </div>
 
                     </div>
@@ -251,21 +251,13 @@
             audio.play();
         }
 
-        const socket = io('http://192.168.43.100:8080'); // Ganti URL dengan URL server Workerman sesuai kebutuhan
+        // Contoh menggunakan JavaScript murni
+        var socket = new WebSocket('ws://127.0.0.1:8080');
 
-        // Mengirim pesan ke server Workerman
-        function sendMessage(userId, userPosition, message) {
-            const data = {
-                userId: userId, 
-                userPosition: userPosition,
-                message: message
-            };
-            socket.emit('message', JSON.stringify(data));
-        }
+        // Mengirim informasi pengguna saat koneksi terbuka
+        socket.onopen = function(event) {           
+            console.log('conected');
+        };
 
-        // Menerima pesan dari server Workerman
-        socket.on('message', function(message) {
-            console.log('Received message:', message);
-            // Lakukan tindakan sesuai dengan pesan yang diterima
-        });
+        // ...
     </script>
