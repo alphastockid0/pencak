@@ -23,14 +23,14 @@ class Server implements MessageComponentInterface
             return;
         }
 
-        $type = session('type');
-        $gelanggang = session('gelanggang');
-        $juriNumber = session('juri_number');
+        $type = session('type') ?? '';
+        $gelanggang = session('gelanggang') ?? '';
+        $juriNumber = session('juri_number') ?? '';
 
         $this->connectedUsers[$uid] = [
-            'type' => $type ?? '',
-            'gelanggang' => $gelanggang ?? '',
-            'juri_number' => $juriNumber ?? '',
+            'type' => $type,
+            'gelanggang' => $gelanggang,
+            'juri_number' => $juriNumber,
         ];
 
         // ...
