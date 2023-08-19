@@ -70,6 +70,8 @@ $routes->get('/cek', 'AuthNilai::auth');
 
 $routes->get('/', 'SocketController::index');
 $routes->cli('socket', 'SocketController::start');
+$routes->cli('validation', 'Validation::validation');
+
 
 
 

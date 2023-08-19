@@ -71,7 +71,9 @@ class Juri extends BaseController
         }
     }
     private function daemon($g, $file_config)
-    { // Aktifkan output buffering agar data bisa terus diproses tanpa henti
+    { 
+        
+        // Aktifkan output buffering agar data bisa terus diproses tanpa henti
         ob_implicit_flush(true);
         ob_end_flush();
 

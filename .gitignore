@@ -125,3 +125,4 @@ php_errors.log
 # # /phpunit*.xml
 # # /.phpunit.*.cache
 
+node_modules

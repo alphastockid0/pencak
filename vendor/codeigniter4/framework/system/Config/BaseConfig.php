@@ -59,7 +59,7 @@ class BaseConfig
      */
     public function __construct()
     {
-        static::$moduleConfig = config('Modules');
+        static::$moduleConfig = config(Modules::class);
 
         $this->registerProperties();
 
@@ -86,7 +86,7 @@ class BaseConfig
     /**
      * Initialization an environment-specific configuration setting
      *
-     * @param mixed $property
+     * @param array|bool|float|int|string|null $property
      *
      * @return void
      */
